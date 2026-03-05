@@ -1,152 +1,40 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <title>AREZZO SICURA</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root { --bg-dark: #0a0d14; --panel-bg: #141b26; --accent-red: #ff3b30; --accent-blue: #007aff; }
-        body { background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        
-        /* HEADER PULITO */
-        header { background: #1a222f; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2c3e50; }
-        .header-left { font-weight: bold; font-size: 1.5em; letter-spacing: 1px; }
-        .header-right { color: var(--text-gray); font-family: monospace; font-size: 1.1em; }
+from flask import Flask, render_template, jsonify
+import feedparser, datetime, os, urllib.request, ssl
 
-        /* NEWS BANNER */
-        .news-banner { background: #4a0e0e; height: 50px; display: flex; align-items: center; overflow: hidden; border-bottom: 2px solid var(--accent-red); }
-        .news-track { display: flex; white-space: nowrap; animation: scroll 120s linear infinite; }
-        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .news-item { padding: 0 30px; font-weight: bold; font-size: 0.9em; border-right: 1px solid #601a1a; }
+app = Flask(__name__)
 
-        /* LAYOUT */
-        .dashboard-container { display: grid; grid-template-columns: 340px 1fr 340px; gap: 12px; padding: 12px; flex-grow: 1; }
-        .panel { display: flex; flex-direction: column; gap: 10px; overflow-y: hidden; }
-        .panel-column { display: flex; flex-direction: column; gap: 12px; }
+RSS_FEEDS = ["https://www.arezzonotizie.it/rss", "https://www.lanazione.it/arezzo/rss", "https://www.corrierediarezzo.it/rss"]
 
-        /* BOX SOCIAL SEPARATI */
-        .social-box { 
-            background: #1c2533; 
-            padding: 12px; 
-            border-radius: 6px; 
-            border: 1px solid #2c3e50; 
-            text-decoration: none; 
-            color: white; 
-            display: block; 
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .social-box:hover { transform: translateY(-2px); border-color: var(--accent-blue); }
-        .social-tag { color: var(--accent-blue); font-size: 0.7em; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+@app.route('/')
+def index(): return render_template('index.html')
 
-        /* MAPPA */
-        #map-container { position: relative; border-radius: 8px; overflow: hidden; background: #0b111a; border: 1px solid #2c3e50; }
-        #map { height: 100%; width: 100%; }
-        .map-overlay-btn { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: linear-gradient(180deg, #ff4444 0%, #990000 100%); padding: 15px 40px; border-radius: 4px; font-weight: bold; color: white; text-decoration: none; z-index: 1000; box-shadow: 0 0 20px rgba(255,0,0,0.4); border: 1px solid #ff0000; }
+@app.route('/api/updates')
+def get_updates():
+    news_list = []
+    keywords = ["furto", "rapina", "ladri", "sicurezza", "fuga", "spaccata", "cronaca", "arresto"]
+    context = ssl._create_unverified_context()
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/110.0.0.0 Safari/537.36'}
 
-        /* BOX ISTITUZIONALE BASSO DESTRA */
-        .info-box { background: #141b26; border: 1px solid #2c3e50; padding: 15px; border-radius: 6px; }
-        .info-title { color: var(--accent-blue); font-size: 0.8em; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #2c3e50; padding-bottom: 5px; }
-        .link-button { display: block; background: #1e2736; padding: 10px; margin-bottom: 8px; border-radius: 4px; text-decoration: none; color: #ecf0f1; font-size: 0.85em; border: 1px solid #2c3e50; transition: 0.2s; }
-        .link-button:hover { background: #253142; border-color: var(--accent-blue); }
-
-        /* STATS */
-        .stats-box { background: #141b26; border: 1px solid #2c3e50; padding: 15px; border-radius: 6px; flex-grow: 1; }
-    </style>
-</head>
-<body>
-
-<header>
-    <div class="header-left">🛡️ AREZZO SICURA <span style="color:var(--accent-red)">(LIVE)</span></div>
-    <div class="header-right" id="clock">CARICAMENTO...</div>
-</header>
-
-<div class="news-banner">
-    <div class="news-track" id="news-track"></div>
-</div>
-
-<div class="dashboard-container">
-    <div class="panel-column" id="social-feed"></div>
+    for url in RSS_FEEDS:
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, context=context, timeout=8) as response:
+                feed = feedparser.parse(response.read())
+                for entry in feed.entries[:10]:
+                    if any(k in entry.title.lower() for k in keywords):
+                        news_list.append({"fonte": "CRONACA", "titolo": entry.title.upper()})
+        except: continue
     
-    <div id="map-container">
-        <div id="map"></div>
-        <a href="tel:112" class="map-overlay-btn">🚨 CHIAMATA DI EMERGENZA 112</a>
-    </div>
+    if not news_list: news_list.append({"fonte": "SISTEMA", "titolo": "MONITORAGGIO ATTIVO - NESSUNA NOTIZIA RSS"})
 
-    <div class="panel-column">
-        <div class="stats-box">
-            <div style="color:var(--accent-blue); font-weight:bold; margin-bottom:15px; font-size:0.8em;">📊 ANALISI PERMEABILITÀ EVASIONE</div>
-            <div id="stats-bars"></div>
-        </div>
+    social_data = [
+        {"tipo": "WHATSAPP", "comune": "AREZZO OLMO", "testo": "Segnalata auto sospetta vicino scuole.", "data_ora": "2 MIN FA", "link": "https://web.whatsapp.com/"},
+        {"tipo": "TELEGRAM", "comune": "VALDARNO", "testo": "Tentativo di spaccata fallito. Ladri fuggiti.", "data_ora": "15 MIN FA", "link": "https://t.me/s/ArezzoNotizie"}
+    ]
 
-        <div class="info-box">
-            <div class="info-title">⚖️ PROTOCOLLO DIFESA ATTIVA</div>
-            <a href="https://www.carabinieri.it/in-vostro-aiuto/consigli/in-casa/furti" target="_blank" class="link-button">👮 Carabinieri: Guida Anti-Furto</a>
-            <a href="https://www.poliziadistato.it/articolo/1070" target="_blank" class="link-button">👮 Polizia: Sicurezza in Casa</a>
-        </div>
-    </div>
-</div>
+    stats_data = [{"label": "MONTEVARCHI (A1)", "valore": 9.8}, {"label": "CORTONA (SR71)", "valore": 9.5}, {"label": "CIVITELLA", "valore": 9.2}]
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet-polyline-decorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+    return jsonify({"ticker_news": news_list, "social_feed": social_data, "stats": stats_data})
 
-<script>
-    const map = L.map('map', {zoomControl: false}).setView([43.463, 11.878], 11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
-    function drawArrows() {
-        const routes = [
-            { from: [43.463, 11.878], to: [43.528, 11.770], color: "#ff3b30" }, // Verso A1
-            { from: [43.463, 11.878], to: [43.350, 11.980], color: "#f1c40f" }  // Verso Sentieri
-        ];
-        routes.forEach(r => {
-            const line = L.polyline([r.from, r.to], {color: r.color, weight: 3, dashArray: '5, 10', opacity: 0.6}).addTo(map);
-            L.polylineDecorator(line, {
-                patterns: [{offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {fillOpacity: 1, color: r.color}})}]
-            }).addTo(map);
-        });
-    }
-    drawArrows();
-
-    function updateClock() {
-        const ora = new Date();
-        document.getElementById('clock').innerText = ora.toLocaleString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).toUpperCase();
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    async function refreshData() {
-        try {
-            const res = await fetch('/api/updates');
-            const data = await res.json();
-
-            // News Ticker
-            const track = document.getElementById('news-track');
-            const newsHtml = data.ticker_news.map(n => `<div class="news-item">🚨 ${n.fonte}: ${n.titolo}</div>`).join('');
-            track.innerHTML = newsHtml + newsHtml;
-
-            // Social Feed (Box Separati)
-            document.getElementById('social-feed').innerHTML = data.social_feed.map(s => `
-                <a href="${s.link}" target="_blank" class="social-box">
-                    <div class="social-tag">${s.tipo} | ${s.comune}</div>
-                    <div style="font-size:0.85em; line-height:1.4;">${s.testo}</div>
-                    <div style="font-size:0.7em; color:gray; margin-top:8px; text-align:right;">${s.data_ora}</div>
-                </a>
-            `).join('');
-
-            // Stats
-            document.getElementById('stats-bars').innerHTML = data.stats.map(st => `
-                <div style="margin-bottom:12px;">
-                    <div style="font-size:0.75em; display:flex; justify-content:space-between;"><span>${st.label}</span><span>${st.valore}</span></div>
-                    <div style="background:#0f141d; height:8px; border-radius:4px; margin-top:4px;">
-                        <div style="width:${st.valore*10}%; height:100%; background:linear-gradient(90deg, #f1c40f, #e67e22); border-radius:4px;"></div>
-                    </div>
-                </div>
-            `).join('');
-        } catch (e) { console.error("Errore sincro"); }
-    }
-
-    refreshData();
-    setInterval(refreshData, 60000);
-</script>
-</body>
-</html>
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
