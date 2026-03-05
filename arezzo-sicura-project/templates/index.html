@@ -5,113 +5,70 @@
     <title>AREZZO SICURA</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --bg-dark: #0a0d14; --panel-bg: #141b26; --accent-red: #ff3b30; --accent-blue: #007aff; }
-        body { background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        
-        header { background: #111821; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c3e50; }
-        .header-title { font-weight: bold; font-size: 1.4em; }
-
-        .news-banner { background: #3a0808; height: 50px; display: flex; align-items: center; overflow: hidden; border-bottom: 2px solid var(--accent-red); }
-        .news-track { display: flex; white-space: nowrap; animation: scroll 60s linear infinite; }
+        :root { --bg: #0a0d14; --panel: #141b26; --red: #ff3b30; --blue: #007aff; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        header { background: #111821; padding: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #2c3e50; font-weight: bold; }
+        .banner { background: #3a0808; height: 45px; overflow: hidden; display: flex; align-items: center; border-bottom: 2px solid var(--red); }
+        .track { display: flex; white-space: nowrap; animation: scroll 60s linear infinite; }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .news-item { padding: 0 30px; font-weight: bold; font-size: 0.9em; color: #fff; }
-
-        .dashboard-container { display: grid; grid-template-columns: 340px 1fr 340px; gap: 10px; padding: 10px; flex-grow: 1; height: calc(100vh - 120px); }
-        .panel-column { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-
-        .social-box { background: #1c2533; padding: 15px; border-radius: 6px; border: 1px solid #232d3b; text-decoration: none; color: white; display: block; border-left: 4px solid var(--accent-blue); }
-        .social-box:hover { border-color: var(--accent-blue); background: #253142; }
-
-        #map-container { position: relative; border-radius: 6px; overflow: hidden; border: 1px solid #232d3b; background: #0b111a; }
-        #map { height: 100%; width: 100%; }
-        
-        .map-overlay-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(180deg, #ff4d4d 0%, #990000 100%); padding: 15px 40px; border-radius: 4px; font-weight: bold; color: white; text-decoration: none; z-index: 1000; border: 1px solid #ff0000; white-space: nowrap; }
-
-        .info-box { background: var(--panel-bg); padding: 15px; border-radius: 6px; border: 1px solid #232d3b; margin-top: auto; }
-        .link-button { display: block; background: #1c2533; padding: 10px; margin-top: 8px; border-radius: 4px; text-decoration: none; color: #ecf0f1; font-size: 0.85em; border: 1px solid #2c3e50; }
-        .link-button:hover { border-color: var(--accent-blue); }
+        .grid { display: grid; grid-template-columns: 320px 1fr 320px; gap: 10px; padding: 10px; flex-grow: 1; height: 80vh; }
+        .col { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        .card { background: #1c2533; padding: 12px; border-radius: 4px; border: 1px solid #232d3b; text-decoration: none; color: white; display: block; }
+        .card:hover { border-color: var(--blue); }
+        #map { background: #0b111a; border-radius: 4px; height: 100%; position: relative; }
+        .btn-112 { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(#ff4d4d, #900); padding: 15px 30px; border-radius: 4px; font-weight: bold; color: white; text-decoration: none; z-index: 1000; border: 1px solid red; }
+        .stat-bar { background: #0f141d; height: 8px; border-radius: 4px; margin-top: 5px; }
+        .stat-fill { background: linear-gradient(90deg, #f1c40f, #e67e22); height: 100%; border-radius: 4px; }
     </style>
 </head>
 <body>
-
-<header>
-    <div class="header-title">🛡️ AREZZO SICURA</div>
-    <div id="clock" style="color: #a0a0a0; font-family: monospace;">GIOVEDÌ 5 MARZO 2026</div>
-</header>
-
-<div class="news-banner">
-    <div class="news-track" id="news-track"></div>
-</div>
-
-<div class="dashboard-container">
-    <div class="panel-column" id="social-feed"></div>
-    
-    <div id="map-container">
-        <div id="map"></div>
-        <a href="tel:112" class="map-overlay-btn">🚨 CHIAMATA DI EMERGENZA 112</a>
-    </div>
-
-    <div class="panel-column">
-        <div style="background:var(--panel-bg); padding:15px; border-radius:6px; border:1px solid #232d3b;">
-            <div style="color:var(--accent-blue); font-weight:bold; font-size:0.8em; margin-bottom:15px; text-transform:uppercase;">📊 Analisi Permeabilità</div>
-            <div id="stats-bars"></div>
-        </div>
-
-        <div class="info-box">
-            <div style="color:var(--accent-blue); font-weight:bold; font-size:0.8em; margin-bottom:10px; text-transform:uppercase;">⚖️ Consigli Sicurezza</div>
-            <a href="https://www.carabinieri.it/in-vostro-aiuto/consigli/in-casa/furti" target="_blank" class="link-button">👮 Consigli Carabinieri</a>
-            <a href="https://www.poliziadistato.it/articolo/1070" target="_blank" class="link-button">👮 Consigli Polizia di Stato</a>
+    <header>🛡️ AREZZO SICURA <span>GIOVEDÌ 5 MARZO 2026</span></header>
+    <div class="banner"><div class="track" id="news"></div></div>
+    <div class="grid">
+        <div class="col" id="social-col"></div>
+        <div id="map"><a href="tel:112" class="btn-112">🚨 CHIAMATA DI EMERGENZA 112</a></div>
+        <div class="col">
+            <div class="card"><strong>📊 ANALISI PERMEABILITÀ</strong><div id="stats" style="margin-top:10px;"></div></div>
+            <div class="card" style="margin-top:auto;">
+                <strong>⚖️ CONSIGLI SICUREZZA</strong>
+                <a href="https://www.carabinieri.it" target="_blank" class="card" style="margin-top:5px; background:#111821;">👮 Consigli Carabinieri</a>
+                <a href="https://www.poliziadistato.it" target="_blank" class="card" style="margin-top:5px; background:#111821;">👮 Consigli Polizia</a>
+            </div>
         </div>
     </div>
-</div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-polyline-decorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+    <script>
+        const map = L.map('map', {zoomControl: false}).setView([43.46, 11.88], 11);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet-polyline-decorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
-<script>
-    const map = L.map('map', {zoomControl: false}).setView([43.463, 11.878], 11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-    
-    function drawTactical() {
-        // Frecce tattiche (Vie di fuga)
-        const routes = [
-            {coords: [[43.463, 11.878], [43.528, 11.770]], color: '#ff3b30'}, // A1
-            {coords: [[43.463, 11.878], [43.350, 11.980]], color: '#f1c40f'}  // Sentieri
-        ];
-        routes.forEach(r => {
-            const line = L.polyline(r.coords, {color: r.color, weight: 4, dashArray: '10, 10'}).addTo(map);
-            L.polylineDecorator(line, {
-                patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {color: r.color, fillOpacity: 1}})}]
-            }).addTo(map);
-        });
-    }
-    drawTactical();
+        function drawArrows() {
+            const lines = [
+                {c: [[43.46, 11.88], [43.52, 11.77]], col: '#ff3b30'},
+                {c: [[43.46, 11.88], [43.35, 11.98]], col: '#f1c40f'}
+            ];
+            lines.forEach(r => {
+                const l = L.polyline(r.c, {color: r.col, weight: 4, dashArray: '10,10'}).addTo(map);
+                L.polylineDecorator(l, {patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {color: r.col, fillOpacity: 1}})}]}).addTo(map);
+            });
+        }
+        drawArrows();
 
-    async function refresh() {
-        try {
-            const res = await fetch('/api/updates');
-            const data = await res.json();
-            
-            // News Ticker
-            document.getElementById('news-track').innerHTML = (data.ticker_news.map(n => `<div class="news-item">🚨 ${n.fonte}: ${n.titolo}</div>`).join('')).repeat(3);
-            
-            // Social Feed
-            document.getElementById('social-feed').innerHTML = data.social_feed.map(s => `
-                <a href="${s.link}" target="_blank" class="social-box">
-                    <div style="color:var(--accent-blue); font-size:0.75em; font-weight:bold; margin-bottom:5px;">${s.tipo} | ${s.comune}</div>
-                    <div style="font-size:0.85em; line-height:1.4;">${s.testo}</div>
-                    <div style="font-size:0.7em; color:gray; margin-top:10px; text-align:right;">${s.data_ora}</div>
+        async function update() {
+            const r = await fetch('/api/updates');
+            const d = await r.json();
+            document.getElementById('news').innerHTML = (d.news.map(n => `<span style="padding:0 40px">🚨 ${n.fonte}: ${n.titolo}</span>`).join('')).repeat(3);
+            document.getElementById('social-col').innerHTML = d.social.map(s => `
+                <a href="${s.link}" target="_blank" class="card">
+                    <div style="color:var(--blue); font-size:12px; font-weight:bold;">${s.tipo} | ${s.comune}</div>
+                    <div style="margin:5px 0;">${s.testo}</div>
+                    <div style="font-size:10px; color:gray; text-align:right;">${s.data}</div>
                 </a>`).join('');
-
-            // Stats
-            document.getElementById('stats-bars').innerHTML = data.stats.map(st => `
-                <div style="margin-bottom:12px;">
-                    <div style="font-size:0.75em; display:flex; justify-content:space-between; margin-bottom:5px;"><span>${st.label}</span><span>${st.valore}</span></div>
-                    <div style="background:#0f141d; height:8px; border-radius:4px;"><div style="width:${st.valore*10}%; background:linear-gradient(90deg,#f1c40f,#e67e22); height:100%; border-radius:4px;"></div></div>
-                </div>`).join('');
-        } catch (e) { console.error("Errore sincro"); }
-    }
-    refresh();
-    setInterval(refresh, 60000);
-</script>
+            document.getElementById('stats').innerHTML = d.stats.map(s => `
+                <div style="margin-bottom:10px; font-size:12px;">${s.l} (${s.v})
+                <div class="stat-bar"><div class="stat-fill" style="width:${s.v*10}%"></div></div></div>`).join('');
+        }
+        update(); setInterval(update, 60000);
+    </script>
 </body>
 </html>
