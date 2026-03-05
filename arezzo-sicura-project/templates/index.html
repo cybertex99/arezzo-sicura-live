@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AREZZO SICURA - Tactical Dashboard</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
         :root {
             --neon-red: #ff3b3b;
@@ -33,7 +35,7 @@
             align-items: center;
         }
 
-        /* TICKER RALLENTATO */
+        /* --- MODIFICA VELOCITÀ TICKER --- */
         .ticker-wrap {
             background: #600;
             height: 35px;
@@ -46,15 +48,18 @@
             white-space: nowrap;
             display: inline-block;
             padding-left: 100%;
-            animation: ticker 100s linear infinite; /* Rallentato a 100 secondi */
+            /* Rallentato a 200s (diminuzione velocità del 100% rispetto ai 100s precedenti) */
+            animation: ticker 200s linear infinite; 
             font-weight: bold;
             font-size: 1.1em;
+            color: #ffffff;
         }
 
         @keyframes ticker {
             0% { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(-300%, 0, 0); }
+            100% { transform: translate3d(-400%, 0, 0); }
         }
+        /* -------------------------------- */
 
         .main-layout {
             display: grid;
@@ -80,74 +85,109 @@
             padding-bottom: 5px;
             font-size: 0.9em;
             font-weight: bold;
+            text-transform: uppercase;
         }
 
-        #map { background: #000; border: 1px solid #333; }
+        #map { 
+            background: #000; 
+            border: 1px solid #333; 
+        }
 
         /* PULSANTI FORZE DELL'ORDINE */
         .police-btn {
             display: block;
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 10px;
             background: #1a1a1a;
             color: white;
             border: 1px solid #444;
             text-decoration: none;
             text-align: center;
-            font-size: 0.8em;
+            font-size: 0.85em;
+            font-weight: bold;
             transition: 0.3s;
+            border-radius: 4px;
         }
 
         .police-btn:hover {
             background: #333;
             border-color: var(--accent-blue);
+            color: var(--accent-blue);
         }
 
-        .stat-bar { height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin-top: 5px;}
+        .feed-item {
+            border-left: 3px solid var(--accent-blue);
+            padding: 8px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.05);
+            font-size: 0.85em;
+        }
+
+        .stat-bar { height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin-top: 5px; }
         .stat-fill { height: 100%; transition: width 1.5s ease-out; }
+        
+        .emergency-box {
+            margin-top: auto;
+            padding: 15px;
+            border: 2px solid var(--neon-red);
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        .emergency-link {
+            color: var(--neon-red);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2em;
+            display: block;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="color: var(--neon-red); font-weight: bold;">TOC LIVE AGGREGATOR - AREZZO SICURA</div>
-    <div id="date-display">{{ data_oggi }}</div>
+    <div style="color: var(--neon-red); font-weight: bold; letter-spacing: 1px;">🛡️ AREZZO SICURA - TOC LIVE</div>
+    <div id="date-display" style="font-family: monospace;">{{ data_oggi }}</div>
 </header>
 
 <div class="ticker-wrap">
-    <div class="ticker-content" id="news-ticker">Sincronizzazione...</div>
+    <div class="ticker-content" id="news-ticker">Inizializzazione flussi dati dalle testate locali di Arezzo e provincia...</div>
 </div>
 
 <div class="main-layout">
     <div class="panel">
-        <div class="panel-title">LIVE SOCIAL FEEDS</div>
-        <div id="social-list"></div>
+        <div class="panel-title">📡 LIVE SOCIAL FEEDS</div>
+        <div id="social-list">Sincronizzazione in corso...</div>
     </div>
 
     <div id="map"></div>
 
     <div class="panel">
-        <div class="panel-title">PROTOCOLLO SICUREZZA</div>
+        <div class="panel-title">⚖️ PROTOCOLLO SICUREZZA</div>
         <a href="https://www.carabinieri.it/" target="_blank" class="police-btn">CARABINIERI: Difesa Passiva</a>
         <a href="https://www.poliziadistato.it/" target="_blank" class="police-btn">POLIZIA: Consigli Antifurto</a>
+        <a href="https://www.vigilfuoco.it/" target="_blank" class="police-btn">VIGILI DEL FUOCO: Sicurezza</a>
         
-        <div class="panel-title" style="margin-top:20px;">ANALISI LOGISTICA</div>
-        <div id="stats-list"></div>
+        <div class="panel-title" style="margin-top:20px;">📊 ANALISI RISCHIO LOGISTICO</div>
+        <div id="stats-list">Calcolo indici...</div>
         
-        <div style="margin-top: auto; padding: 15px; border: 2px solid var(--neon-red); color: var(--neon-red); font-weight: bold; text-align: center;">
-            <a href="tel:112" style="color:red; text-decoration:none;">EMERGENZA 112</a>
+        <div class="emergency-box">
+            <a href="tel:112" class="emergency-link">🆘 EMERGENZA 112</a>
         </div>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
+    // Inizializzazione mappa con focus su Arezzo - Zoom 12 per vedere le vie
     const map = L.map('map', { zoomControl: true }).setView([43.463, 11.878], 12);
     
-    // LAYER STRADALE (Migliore per vie di fuga rispetto al Dark puro)
+    // Utilizzo di OpenStreetMap Standard per la massima chiarezza sulle vie di fuga
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'OSM'
+        attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     async function fetchData() {
@@ -155,28 +195,49 @@
             const response = await fetch('/api/updates');
             const data = await response.json();
 
-            document.getElementById('news-ticker').innerHTML = data.ticker_news.map(n => 
-                ` +++ <strong>${n.fonte}</strong>: ${n.titolo}`
-            ).join(' ');
+            // Aggiorna Ticker
+            if(data.ticker_news && data.ticker_news.length > 0) {
+                document.getElementById('news-ticker').innerHTML = data.ticker_news.map(n => 
+                    ` +++ <strong>${n.fonte}</strong>: ${n.titolo}`
+                ).join(' ');
+            }
 
-            document.getElementById('social-list').innerHTML = data.social_feed.map(s => `
-                <div style="border-left:3px solid ${s.colore}; padding:5px; margin-bottom:10px; background:rgba(255,255,255,0.05);">
-                    <small>${s.tipo}</small><br>${s.testo}
+            // Aggiorna Social List
+            const socialList = document.getElementById('social-list');
+            socialList.innerHTML = data.social_feed.map(s => `
+                <div class="feed-item">
+                    <strong style="color:var(--accent-blue)">${s.tipo}</strong> - <small>${s.comune}</small><br>
+                    ${s.testo}
                 </div>
             `).join('');
 
-            document.getElementById('stats-list').innerHTML = data.stats.map(st => `
-                <div style="font-size:0.7em; margin-top:10px;">${st.label}</div>
-                <div class="stat-bar"><div class="stat-fill" style="width:${st.valore*10}%; background:${st.color}"></div></div>
+            // Aggiorna Statistiche
+            const statsList = document.getElementById('stats-list');
+            statsList.innerHTML = data.stats.map(st => `
+                <div style="font-size:0.75em; margin-top:10px; display:flex; justify-content:space-between;">
+                    <span>${st.label}</span>
+                    <span style="color:${st.color}">${st.valore}</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill" style="width:${st.valore*10}%; background:${st.color}"></div>
+                </div>
             `).join('');
 
+            // Marker Vie di Fuga / Segnalazioni
             data.social_feed.forEach(p => {
-                L.marker([p.lat, p.lon]).addTo(map).bindPopup(p.testo);
+                L.marker([p.lat, p.lon]).addTo(map)
+                    .bindPopup(`<b>${p.comune}</b><br>${p.testo}`);
             });
-        } catch (e) { console.log(e); }
+
+        } catch (e) { 
+            console.error("Errore fetch dati:", e); 
+        }
     }
+
+    // Avvio e Loop
     fetchData();
-    setInterval(fetchData, 60000);
+    setInterval(fetchData, 60000); // Aggiorna ogni minuto
 </script>
+
 </body>
 </html>
