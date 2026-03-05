@@ -3,137 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AREZZO SICURA - TOC</title>
+    <title>AREZZO SICURA - Aggregatore Sicurezza</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --neon-red: #ff0000;
-            --dark-bg: #050505;
-            --panel-bg: rgba(15, 15, 15, 0.98);
-            --accent-cyan: #00ffff;
+            --bg-dark: #0a0d14;
+            --panel-bg: #141b26;
+            --accent-red: #ff3b30;
+            --accent-blue: #007aff;
+            --text-gray: #a0a0a0;
         }
 
         body {
-            background-color: var(--dark-bg);
-            color: #d0d0d0;
-            font-family: 'Orbitron', sans-serif; /* Se disponibile, altrimenti sans-serif */
-            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* TITOLO REIMPOSTATO */
+        /* HEADER */
         header {
-            background: linear-gradient(90deg, #000, #200, #000);
-            border-bottom: 3px solid var(--neon-red);
+            background: #1a222f;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        /* NEWS CAROUSEL (Top Banner) */
+        .news-banner {
+            background: #4a0e0e;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            border-bottom: 2px solid var(--accent-red);
+        }
+
+        .news-track {
+            display: flex;
+            white-space: nowrap;
+            animation: scroll 120s linear infinite;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .news-item {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-right: 1px solid #601a1a;
+        }
+
+        .news-item img { height: 30px; margin-right: 10px; border-radius: 3px; }
+
+        /* LAYOUT */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 320px 1fr 320px;
+            gap: 15px;
             padding: 15px;
-            text-align: center;
-            box-shadow: 0 0 20px rgba(255,0,0,0.3);
+            flex-grow: 1;
         }
 
-        header h1 {
-            margin: 0; color: white; letter-spacing: 5px; font-size: 1.5em; text-shadow: 2px 2px #ff0000;
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #2c3e50;
         }
 
-        /* NEWS ANCORA PIÙ LENTE (400s) */
-        .ticker-wrap { background: #300; height: 40px; overflow: hidden; display: flex; align-items: center; border-bottom: 1px solid #600; }
-        .ticker-content {
-            white-space: nowrap; display: inline-block; padding-left: 100%;
-            animation: ticker 400s linear infinite; /* VELOCITÀ RIDOTTA DEL 200% RISPETTO A PRIMA */
-            font-weight: bold; font-size: 1.2em; color: #ff9999;
+        .panel-header {
+            color: var(--accent-blue);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
         }
 
-        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-500%, 0, 0); } }
-
-        .main-layout { display: grid; grid-template-columns: 350px 1fr 350px; flex-grow: 1; gap: 5px; padding: 5px; }
-        .panel { background: var(--panel-bg); border: 1px solid #333; padding: 15px; overflow-y: auto; }
-        .panel-title { color: var(--accent-cyan); border-bottom: 1px solid var(--accent-cyan); margin-bottom: 15px; padding-bottom: 5px; font-size: 0.8em; letter-spacing: 2px; }
-
-        /* SOCIAL ITEM CON DATA E ORA */
-        .feed-item { background: rgba(255,255,255,0.03); border: 1px solid #222; margin-bottom: 15px; padding: 10px; border-radius: 5px; }
-        .feed-meta { display: flex; justify-content: space-between; font-size: 0.7em; color: var(--accent-cyan); margin-bottom: 5px; }
-
-        /* VIE DI FUGA GRAFICA */
-        .fuga-item { margin-bottom: 15px; }
-        .fuga-header { display: flex; justify-content: space-between; font-size: 0.8em; margin-bottom: 5px; }
-        .fuga-bar-bg { height: 12px; background: #222; border-radius: 6px; border: 1px solid #444; overflow: hidden; }
-        .fuga-bar-fill { height: 100%; box-shadow: 0 0 10px rgba(0,255,0,0.5); }
-
-        /* POLICE BUTTONS */
-        .police-btn {
-            display: block; width: 100%; padding: 10px; margin-top: 10px;
-            background: #111; color: white; border: 1px solid #ff000044;
-            text-decoration: none; text-align: center; font-size: 0.75em; border-radius: 3px;
+        /* SOCIAL FEED (Left) */
+        .social-item {
+            background: #1e2736;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
         }
-        .police-btn:hover { background: #300; border-color: var(--neon-red); }
 
-        #map { background: #000; border: 1px solid #333; }
+        /* MAPPA (Center) */
+        #map-container { position: relative; border-radius: 8px; overflow: hidden; }
+        #map { height: 100%; width: 100%; background: #0b111a; }
+        
+        .map-overlay-btn {
+            position: absolute; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            background: radial-gradient(circle, #ff3b30 0%, #800 100%);
+            padding: 15px 40px; border-radius: 50px;
+            font-weight: bold; text-decoration: none; color: white;
+            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+            z-index: 1000;
+        }
+
+        /* GRAFICI (Right) */
+        .bar-container { margin-top: 10px; }
+        .bar-row { margin-bottom: 12px; }
+        .bar-label { font-size: 0.75em; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .bar-bg { background: #2c3e50; height: 10px; border-radius: 5px; overflow: hidden; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, #f1c40f, #e67e22); }
+
+        /* FOOTER LINKS */
+        .footer-links {
+            margin-top: auto;
+            border-top: 1px solid #2c3e50;
+            padding-top: 15px;
+        }
+        .link-item {
+            display: block; color: #ecf0f1; text-decoration: none;
+            padding: 8px 0; font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>UNITÀ OPERATIVA: AREZZO SICURA</h1>
-    <div style="font-size: 0.8em; color: #888;">SISTEMA AGGREGATORE CRIMINI E LOGISTICA | {{ data_oggi }}</div>
+    <div style="font-weight:bold; font-size:1.2em;">🛡️ AREZZO SICURA <span style="font-weight:normal; color:var(--text-gray);"> - AGGREGATORE SICUREZZA TERRITORIALE</span> <span style="color:var(--accent-red)">(LIVE)</span></div>
+    <div id="clock">GIOVEDÌ 5 MARZO 2026</div>
 </header>
 
-<div class="ticker-wrap">
-    <div class="ticker-content" id="news-ticker">SINCRO IN CORSO... FILTRO CRIMINI ATTIVO...</div>
+<div class="news-banner">
+    <div class="news-track" id="news-track">
+        </div>
 </div>
 
-<div class="main-layout">
+<div class="dashboard-container">
     <div class="panel">
-        <div class="panel-title">ULTIME SEGNALAZIONI (FURTI/RAPINE)</div>
-        <div id="social-list"></div>
+        <div class="panel-header">📱 SOCIAL STREAM (LIVE FEED)</div>
+        <div id="social-feed"></div>
     </div>
 
-    <div id="map"></div>
+    <div id="map-container" class="panel" style="padding:0;">
+        <div id="map"></div>
+        <a href="tel:112" class="map-overlay-btn">🚨 CHIAMATA DI EMERGENZA 112</a>
+    </div>
 
     <div class="panel">
-        <div class="panel-title">PROBABILITÀ VIE DI FUGA</div>
-        <div id="stats-list"></div>
+        <div class="panel-header">📊 ANALISI LOGISTICA (PERMEABILITÀ)</div>
+        <div style="font-size:0.8em; text-align:center; margin-bottom:10px;">TOP 5 RISCHIO EVASIONE</div>
+        <div id="stats-bars"></div>
 
-        <div class="panel-title" style="margin-top: 30px;">LINK RAPIDI FORZE ORDINE</div>
-        <a href="https://www.carabinieri.it/" target="_blank" class="police-btn">CARABINIERI - Segnalazioni</a>
-        <a href="https://www.poliziadistato.it/" target="_blank" class="police-btn">POLIZIA - Portale Sicurezza</a>
-        <a href="tel:112" class="police-btn" style="background: #600; font-weight: bold; border-color: red;">SOS: CHIAMA 112</a>
+        <div class="footer-links">
+            <div class="panel-header">⚖️ PROTOCOLLO DIFESA ATTIVA</div>
+            <a href="#" class="link-item">🛡️ Carabinieri: Guida Difesa Passiva</a>
+            <a href="#" class="link-item">🛡️ Polizia di Stato: Sicurezza in Casa</a>
+        </div>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const map = L.map('map', { zoomControl: false }).setView([43.463, 11.878], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const map = L.map('map', {zoomControl: false}).setView([43.463, 11.878], 10);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    async function update() {
+    async function refreshData() {
         const res = await fetch('/api/updates');
         const data = await res.json();
 
-        // News Lente
-        document.getElementById('news-ticker').innerHTML = data.ticker_news.map(n => 
-            ` [REPORT CRIMINE] 🚨 ${n.fonte}: ${n.titolo}`
-        ).join(' +++ ');
+        // 1. News Banner
+        const track = document.getElementById('news-track');
+        const newsHtml = data.ticker_news.map(n => `
+            <div class="news-item">
+                <strong>${n.fonte}</strong>: ${n.titolo}
+            </div>
+        `).join('');
+        track.innerHTML = newsHtml + newsHtml; // Duplicato per loop infinito
 
-        // Social con Data/Ora
-        document.getElementById('social-list').innerHTML = data.social_feed.map(s => `
-            <div class="feed-item">
-                <div class="feed-meta"><span>${s.tipo} - ${s.comune}</span><span>${s.ora}</span></div>
-                <div style="font-size:0.85em;">${s.testo}</div>
+        // 2. Social Feed
+        document.getElementById('social-feed').innerHTML = data.social_feed.map(s => `
+            <div class="social-item">
+                <div style="color:var(--accent-blue); font-size:0.8em; margin-bottom:3px;">${s.tipo}: ${s.comune}</div>
+                <div>${s.testo}</div>
+                <div style="color:var(--text-gray); font-size:0.7em; margin-top:5px;">— ${s.data_ora}</div>
             </div>
         `).join('');
 
-        // Vie di Fuga Grafica
-        document.getElementById('stats-list').innerHTML = data.stats.map(st => `
-            <div class="fuga-item">
-                <div class="fuga-header"><span>${st.label}</span><span style="color:#0f0">${st.status}</span></div>
-                <div class="fuga-bar-bg"><div class="fuga-bar-fill" style="width:${st.valore*10}%; background:linear-gradient(90deg, #003300, #00ff00)"></div></div>
+        // 3. Stats Bars
+        document.getElementById('stats-bars').innerHTML = data.stats.map(st => `
+            <div class="bar-row">
+                <div class="bar-label"><span>${st.label}</span><span>${st.valore}</span></div>
+                <div class="bar-bg"><div class="bar-fill" style="width:${st.valore * 10}%"></div></div>
             </div>
         `).join('');
-
-        data.social_feed.forEach(p => {
-            L.circleMarker([p.lat, p.lon], {color: 'red', radius: 8}).addTo(map).bindPopup(p.testo);
-        });
     }
-    update();
-    setInterval(update, 60000);
+
+    refreshData();
+    setInterval(refreshData, 60000);
 </script>
 </body>
 </html>
