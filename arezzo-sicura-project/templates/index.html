@@ -10,32 +10,25 @@
         
         header { background: #111821; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c3e50; }
         .header-title { font-weight: bold; font-size: 1.4em; }
-        .header-right { color: #a0a0a0; font-family: monospace; font-size: 1.1em; }
 
         .news-banner { background: #3a0808; height: 50px; display: flex; align-items: center; overflow: hidden; border-bottom: 2px solid var(--accent-red); }
-        .news-track { display: flex; white-space: nowrap; animation: scroll 120s linear infinite; }
+        .news-track { display: flex; white-space: nowrap; animation: scroll 60s linear infinite; }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .news-item { padding: 0 30px; font-weight: bold; font-size: 0.9em; border-right: 1px solid #501010; }
+        .news-item { padding: 0 30px; font-weight: bold; font-size: 0.9em; color: #fff; }
 
         .dashboard-container { display: grid; grid-template-columns: 340px 1fr 340px; gap: 10px; padding: 10px; flex-grow: 1; height: calc(100vh - 120px); }
-        .panel-column { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 5px; }
+        .panel-column { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 
-        .social-box { background: #1c2533; padding: 12px; border-radius: 4px; border: 1px solid #232d3b; text-decoration: none; color: white; display: block; }
+        .social-box { background: #1c2533; padding: 15px; border-radius: 6px; border: 1px solid #232d3b; text-decoration: none; color: white; display: block; border-left: 4px solid var(--accent-blue); }
         .social-box:hover { border-color: var(--accent-blue); background: #253142; }
 
-        #map-container { position: relative; border-radius: 4px; overflow: hidden; border: 1px solid #232d3b; background: #0b111a; }
+        #map-container { position: relative; border-radius: 6px; overflow: hidden; border: 1px solid #232d3b; background: #0b111a; }
         #map { height: 100%; width: 100%; }
         
-        .map-overlay-btn { 
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            background: linear-gradient(180deg, #ff4d4d 0%, #990000 100%); 
-            padding: 15px 40px; border-radius: 4px; font-weight: bold; color: white; 
-            text-decoration: none; z-index: 1000; border: 1px solid #ff0000; text-align: center; width: 60%;
-        }
+        .map-overlay-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(180deg, #ff4d4d 0%, #990000 100%); padding: 15px 40px; border-radius: 4px; font-weight: bold; color: white; text-decoration: none; z-index: 1000; border: 1px solid #ff0000; white-space: nowrap; }
 
-        .stats-box { background: var(--panel-bg); padding: 15px; border-radius: 4px; border: 1px solid #232d3b; }
-        .info-box { background: var(--panel-bg); padding: 15px; border-radius: 4px; border: 1px solid #232d3b; margin-top: auto; }
-        .link-button { display: block; background: #1c2533; padding: 10px; margin-top: 8px; border-radius: 3px; text-decoration: none; color: #ecf0f1; font-size: 0.85em; border: 1px solid #2c3e50; }
+        .info-box { background: var(--panel-bg); padding: 15px; border-radius: 6px; border: 1px solid #232d3b; margin-top: auto; }
+        .link-button { display: block; background: #1c2533; padding: 10px; margin-top: 8px; border-radius: 4px; text-decoration: none; color: #ecf0f1; font-size: 0.85em; border: 1px solid #2c3e50; }
         .link-button:hover { border-color: var(--accent-blue); }
     </style>
 </head>
@@ -43,7 +36,7 @@
 
 <header>
     <div class="header-title">🛡️ AREZZO SICURA</div>
-    <div class="header-right" id="clock">CARICAMENTO...</div>
+    <div id="clock" style="color: #a0a0a0; font-family: monospace;">GIOVEDÌ 5 MARZO 2026</div>
 </header>
 
 <div class="news-banner">
@@ -59,13 +52,13 @@
     </div>
 
     <div class="panel-column">
-        <div class="stats-box">
-            <div style="color:var(--accent-blue); font-weight:bold; font-size:0.8em; margin-bottom:15px; border-left: 3px solid var(--accent-blue); padding-left: 8px;">📊 ANALISI PERMEABILITÀ</div>
+        <div style="background:var(--panel-bg); padding:15px; border-radius:6px; border:1px solid #232d3b;">
+            <div style="color:var(--accent-blue); font-weight:bold; font-size:0.8em; margin-bottom:15px; text-transform:uppercase;">📊 Analisi Permeabilità</div>
             <div id="stats-bars"></div>
         </div>
 
         <div class="info-box">
-            <div style="color:var(--accent-blue); font-weight:bold; font-size:0.8em; margin-bottom:10px; border-left: 3px solid var(--accent-blue); padding-left: 8px;">⚖️ CONSIGLI SICUREZZA</div>
+            <div style="color:var(--accent-blue); font-weight:bold; font-size:0.8em; margin-bottom:10px; text-transform:uppercase;">⚖️ Consigli Sicurezza</div>
             <a href="https://www.carabinieri.it/in-vostro-aiuto/consigli/in-casa/furti" target="_blank" class="link-button">👮 Consigli Carabinieri</a>
             <a href="https://www.poliziadistato.it/articolo/1070" target="_blank" class="link-button">👮 Consigli Polizia di Stato</a>
         </div>
@@ -77,31 +70,31 @@
 <script>
     const map = L.map('map', {zoomControl: false}).setView([43.463, 11.878], 11);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
+    
     function drawTactical() {
-        // Via di fuga A1
-        const line1 = L.polyline([[43.463, 11.878], [43.528, 11.770]], {color: '#ff3b30', weight: 4, dashArray: '10, 10'}).addTo(map);
-        L.polylineDecorator(line1, {patterns: [{offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {fillOpacity: 1, color: '#ff3b30'}})}]}).addTo(map);
-        
-        // Via di fuga secondaria
-        const line2 = L.polyline([[43.463, 11.878], [43.350, 11.980]], {color: '#f1c40f', weight: 4, dashArray: '10, 10'}).addTo(map);
-        L.polylineDecorator(line2, {patterns: [{offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {fillOpacity: 1, color: '#f1c40f'}})}]}).addTo(map);
+        // Frecce tattiche (Vie di fuga)
+        const routes = [
+            {coords: [[43.463, 11.878], [43.528, 11.770]], color: '#ff3b30'}, // A1
+            {coords: [[43.463, 11.878], [43.350, 11.980]], color: '#f1c40f'}  // Sentieri
+        ];
+        routes.forEach(r => {
+            const line = L.polyline(r.coords, {color: r.color, weight: 4, dashArray: '10, 10'}).addTo(map);
+            L.polylineDecorator(line, {
+                patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {color: r.color, fillOpacity: 1}})}]
+            }).addTo(map);
+        });
     }
     drawTactical();
 
-    function updateClock() {
-        const ora = new Date();
-        document.getElementById('clock').innerText = ora.toLocaleString('it-IT', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }).toUpperCase();
-    }
-    setInterval(updateClock, 1000); updateClock();
-
-    async function refreshData() {
+    async function refresh() {
         try {
             const res = await fetch('/api/updates');
             const data = await res.json();
             
+            // News Ticker
             document.getElementById('news-track').innerHTML = (data.ticker_news.map(n => `<div class="news-item">🚨 ${n.fonte}: ${n.titolo}</div>`).join('')).repeat(3);
             
+            // Social Feed
             document.getElementById('social-feed').innerHTML = data.social_feed.map(s => `
                 <a href="${s.link}" target="_blank" class="social-box">
                     <div style="color:var(--accent-blue); font-size:0.75em; font-weight:bold; margin-bottom:5px;">${s.tipo} | ${s.comune}</div>
@@ -109,14 +102,16 @@
                     <div style="font-size:0.7em; color:gray; margin-top:10px; text-align:right;">${s.data_ora}</div>
                 </a>`).join('');
 
+            // Stats
             document.getElementById('stats-bars').innerHTML = data.stats.map(st => `
                 <div style="margin-bottom:12px;">
                     <div style="font-size:0.75em; display:flex; justify-content:space-between; margin-bottom:5px;"><span>${st.label}</span><span>${st.valore}</span></div>
-                    <div style="background:#0f141d; height:8px; border-radius:4px;"><div style="width:${st.valore*10}%; height:100%; background:linear-gradient(90deg, #f1c40f, #e67e22); border-radius:4px;"></div></div>
+                    <div style="background:#0f141d; height:8px; border-radius:4px;"><div style="width:${st.valore*10}%; background:linear-gradient(90deg,#f1c40f,#e67e22); height:100%; border-radius:4px;"></div></div>
                 </div>`).join('');
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Errore sincro"); }
     }
-    refreshData(); setInterval(refreshData, 60000);
+    refresh();
+    setInterval(refresh, 60000);
 </script>
 </body>
 </html>
