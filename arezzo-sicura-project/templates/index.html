@@ -11,117 +11,136 @@
         :root {
             --neon-red: #ff3b3b;
             --dark-bg: #0a0a0a;
-            --panel-bg: rgba(20, 20, 20, 0.9);
+            --panel-bg: rgba(20, 20, 20, 0.95);
+            --accent-blue: #00f2ff;
         }
 
         body {
             background-color: var(--dark-bg);
-            color: white;
-            font-family: 'Courier New', Courier, monospace;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overflow: hidden;
         }
 
-        /* Top Bar & Ticker */
+        /* Intestazione */
         header {
-            background: #1a1a1a;
+            background: #111;
             border-bottom: 2px solid var(--neon-red);
-            padding: 10px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
+        /* Ticker delle News */
         .ticker-wrap {
-            background: maroon;
-            color: white;
-            padding: 5px;
+            background: #600;
+            height: 30px;
             overflow: hidden;
-            white-space: nowrap;
+            display: flex;
+            align-items: center;
         }
 
         .ticker-content {
+            white-space: nowrap;
             display: inline-block;
-            animation: ticker 30s linear infinite;
+            padding-left: 100%;
+            animation: ticker 40s linear infinite;
+            font-weight: bold;
+            font-size: 0.9em;
         }
 
         @keyframes ticker {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-200%, 0, 0); }
         }
 
-        /* Layout Principale */
-        .main-container {
+        /* Layout */
+        .main-layout {
             display: grid;
-            grid-template-columns: 300px 1fr 300px;
+            grid-template-columns: 320px 1fr 300px;
             flex-grow: 1;
-            gap: 10px;
-            padding: 10px;
+            gap: 5px;
+            padding: 5px;
+            background: #000;
         }
 
         .panel {
             background: var(--panel-bg);
-            border: 1px solid #333;
+            border: 1px solid #222;
+            display: flex;
+            flex-direction: column;
             padding: 15px;
             overflow-y: auto;
         }
 
-        #map {
-            width: 100%;
-            height: 100%;
-            border: 1px solid #444;
-            background: #000;
-        }
-
-        .feed-item {
-            font-size: 0.85em;
+        .panel-title {
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--accent-blue);
             margin-bottom: 15px;
             padding-bottom: 5px;
-            border-bottom: 1px solid #222;
+            font-size: 0.9em;
+            font-weight: bold;
         }
 
-        .stat-bar {
-            height: 20px;
-            background: #222;
-            margin: 10px 0;
-            position: relative;
+        /* Contenitore Mappa */
+        #map {
+            background: #000;
+            border: 1px solid #333;
         }
 
-        .stat-fill {
-            height: 100%;
-            transition: width 1s ease-in-out;
+        /* Stile Feed Social */
+        .feed-item {
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 0.8em;
+            border-radius: 2px;
         }
+
+        /* Barre Statistiche */
+        .stat-container { margin-bottom: 15px; }
+        .stat-label { font-size: 0.75em; margin-bottom: 5px; }
+        .stat-bar { height: 8px; background: #222; border-radius: 4px; overflow: hidden; }
+        .stat-fill { height: 100%; transition: width 1.5s ease-out; }
+
+        /* Scrollbar sottile */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: bold; color: var(--neon-red);">🛡️ AREZZO SICURA - LIVE AGGREGATOR</div>
-    <div id="clock">{{ data_oggi }}</div>
+    <div style="color: var(--neon-red); font-weight: bold;">TOC LIVE AGGREGATOR - AREZZO SICURA</div>
+    <div id="date-display">{{ data_oggi }}</div>
 </header>
 
 <div class="ticker-wrap">
-    <div class="ticker-content" id="news-ticker">Caricamento news in corso dalle testate di Arezzo...</div>
+    <div class="ticker-content" id="news-ticker">Sincronizzazione con le testate locali in corso...</div>
 </div>
 
-<div class="main-container">
+<div class="main-layout">
     <div class="panel">
-        <h3 style="color: cyan; border-bottom: 1px solid cyan;">📡 LIVE SOCIAL FEEDS</h3>
-        <div id="social-list">Attendere sincronizzazione...</div>
+        <div class="panel-title">LIVE SOCIAL FEEDS (X, FB, TG)</div>
+        <div id="social-list">In attesa di dati...</div>
     </div>
 
     <div id="map"></div>
 
     <div class="panel">
-        <h3 style="color: #ffcc00; border-bottom: 1px solid #ffcc00;">📊 ANALISI RISCHIO</h3>
-        <div id="stats-list"></div>
+        <div class="panel-title">ANALISI LOGISTICA (RISCHIO)</div>
+        <div id="stats-list">Calcolo indici in corso...</div>
         
-        <div style="margin-top: 30px; border: 1px dotted red; padding: 10px;">
-            <small>PROTOCOLLO SICUREZZA:</small><br>
-            <strong>STATO: ATTENZIONE</strong>
+        <div style="margin-top: auto; padding: 10px; border: 1px solid var(--neon-red); color: var(--neon-red); font-size: 0.8em; text-align: center;">
+            <strong>PROTOCOLLO ATTIVO</strong><br>Monitoraggio H24
         </div>
     </div>
 </div>
@@ -129,64 +148,66 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // Inizializzazione Mappa focalizzata su Arezzo
+    // 1. Inizializza Mappa
     const map = L.map('map', { zoomControl: false }).setView([43.463, 11.878], 11);
     
-    // Tiles Dark Mode (CartoDB DarkMatter)
+    // Tema Scuro per la Mappa
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap'
+        attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    async function updateDashboard() {
+    // 2. Funzione Principale di Aggiornamento
+    async function fetchData() {
         try {
+            console.log("Richiesta dati al server...");
             const response = await fetch('/api/updates');
             const data = await response.json();
 
-            // 1. Aggiorna Ticker News
+            // Aggiorna Ticker News
             const ticker = document.getElementById('news-ticker');
-            if (data.ticker_news.length > 0) {
+            if (data.ticker_news && data.ticker_news.length > 0) {
                 ticker.innerHTML = data.ticker_news.map(n => 
-                    ` • <strong>${n.fonte}</strong>: ${n.titolo}`
+                    ` +++ <strong>${n.fonte}</strong>: ${n.titolo}`
                 ).join(' ');
             }
 
-            // 2. Aggiorna Social Feed (Sinistra)
+            // Aggiorna Feed Social
             const socialList = document.getElementById('social-list');
             socialList.innerHTML = data.social_feed.map(s => `
-                <div class="feed-item" style="border-left: 3px solid ${s.colore}; padding-left: 8px;">
-                    <span style="color: ${s.colore}; font-weight: bold;">${s.tipo}</span><br>
-                    <small>${s.comune}</small><br>
-                    ${s.testo}
+                <div class="feed-item" style="border-left: 3px solid ${s.colore}">
+                    <div style="color:${s.colore}; font-weight:bold; font-size:10px;">${s.tipo} - ${s.comune}</div>
+                    <div>${s.testo}</div>
                 </div>
             `).join('');
 
-            // 3. Aggiorna Statistiche (Destra)
+            // Aggiorna Statistiche
             const statsList = document.getElementById('stats-list');
             statsList.innerHTML = data.stats.map(st => `
-                <div style="font-size: 0.8em; margin-top:10px;">${st.label} (Livello: ${st.valore})</div>
-                <div class="stat-bar">
-                    <div class="stat-fill" style="width: ${st.valore * 10}%; background: ${st.color};"></div>
+                <div class="stat-container">
+                    <div class="stat-label">${st.label} (Indice: ${st.valore})</div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" style="width: ${st.valore * 10}%; background: ${st.color}"></div>
+                    </div>
                 </div>
             `).join('');
 
-            // 4. Aggiorna Marker sulla Mappa
-            // Puliamo i marker precedenti (opzionale) e aggiungiamo i nuovi
+            // Aggiorna Marker Mappa
             data.social_feed.forEach(point => {
                 L.circleMarker([point.lat, point.lon], {
                     color: point.colore,
-                    radius: 8,
-                    fillOpacity: 0.8
+                    radius: 7,
+                    fillOpacity: 0.6
                 }).addTo(map).bindPopup(`<b>${point.comune}</b><br>${point.testo}`);
             });
 
         } catch (error) {
-            console.error("Errore sincronizzazione dati:", error);
+            console.error("Errore nel recupero dati:", error);
         }
     }
 
-    // Carica dati subito e poi ogni 60 secondi
-    updateDashboard();
-    setInterval(updateDashboard, 60000);
+    // Esegui subito e poi ogni minuto
+    fetchData();
+    setInterval(fetchData, 60000);
 </script>
 
 </body>
