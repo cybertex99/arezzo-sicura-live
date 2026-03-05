@@ -6,69 +6,114 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --bg: #0a0d14; --panel: #141b26; --red: #ff3b30; --blue: #007aff; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        header { background: #111821; padding: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #2c3e50; font-weight: bold; }
-        .banner { background: #3a0808; height: 45px; overflow: hidden; display: flex; align-items: center; border-bottom: 2px solid var(--red); }
-        .track { display: flex; white-space: nowrap; animation: scroll 60s linear infinite; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* HEADER SENZA AGGREGATORE */
+        header { background: #111821; padding: 15px 25px; display: flex; justify-content: space-between; border-bottom: 1px solid #2c3e50; }
+        .header-title { font-weight: bold; font-size: 1.4em; color: white; }
+
+        /* NEWS BANNER */
+        .news-banner { background: #3a0808; height: 45px; display: flex; align-items: center; overflow: hidden; border-bottom: 2px solid var(--red); }
+        .news-track { display: flex; white-space: nowrap; animation: scroll 40s linear infinite; }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .grid { display: grid; grid-template-columns: 320px 1fr 320px; gap: 10px; padding: 10px; flex-grow: 1; height: 80vh; }
+        .news-item { padding: 0 40px; font-weight: bold; font-size: 0.9em; }
+
+        /* LAYOUT 3 COLONNE */
+        .dashboard { display: grid; grid-template-columns: 320px 1fr 320px; gap: 10px; padding: 10px; flex-grow: 1; height: calc(100vh - 120px); }
         .col { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        .card { background: #1c2533; padding: 12px; border-radius: 4px; border: 1px solid #232d3b; text-decoration: none; color: white; display: block; }
-        .card:hover { border-color: var(--blue); }
-        #map { background: #0b111a; border-radius: 4px; height: 100%; position: relative; }
-        .btn-112 { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(#ff4d4d, #900); padding: 15px 30px; border-radius: 4px; font-weight: bold; color: white; text-decoration: none; z-index: 1000; border: 1px solid red; }
-        .stat-bar { background: #0f141d; height: 8px; border-radius: 4px; margin-top: 5px; }
-        .stat-fill { background: linear-gradient(90deg, #f1c40f, #e67e22); height: 100%; border-radius: 4px; }
+
+        /* POST SOCIAL SEPARATI */
+        .social-box { background: #1c2533; padding: 15px; border-radius: 4px; border: 1px solid #232d3b; text-decoration: none; color: white; display: block; }
+        .social-box:hover { border-color: var(--blue); background: #1e2a3a; }
+        .social-tag { color: var(--blue); font-weight: bold; font-size: 0.75em; margin-bottom: 5px; }
+
+        /* MAPPA */
+        #map { background: #0b111a; border-radius: 4px; border: 1px solid #232d3b; height: 100%; position: relative; }
+        .btn-112 { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(#ff4d4d, #990000); padding: 15px 40px; border-radius: 4px; font-weight: bold; color: white; text-decoration: none; z-index: 1000; border: 1px solid red; box-shadow: 0 0 15px rgba(255,0,0,0.3); }
+
+        /* BOX CONSIGLI BASSO DESTRA */
+        .info-panel { background: var(--panel); padding: 15px; border-radius: 4px; border: 1px solid #232d3b; margin-top: auto; }
+        .link-inst { display: block; background: #111821; padding: 12px; margin-top: 8px; border-radius: 4px; text-decoration: none; color: #eee; font-size: 0.85em; border: 1px solid #2c3e50; }
+        
+        /* STATS */
+        .stats-panel { background: var(--panel); padding: 15px; border-radius: 4px; border: 1px solid #232d3b; }
+        .bar-bg { background: #0f141d; height: 8px; border-radius: 4px; margin: 8px 0; }
+        .bar-fill { background: linear-gradient(90deg, #f1c40f, #e67e22); height: 100%; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <header>🛡️ AREZZO SICURA <span>GIOVEDÌ 5 MARZO 2026</span></header>
-    <div class="banner"><div class="track" id="news"></div></div>
-    <div class="grid">
-        <div class="col" id="social-col"></div>
-        <div id="map"><a href="tel:112" class="btn-112">🚨 CHIAMATA DI EMERGENZA 112</a></div>
-        <div class="col">
-            <div class="card"><strong>📊 ANALISI PERMEABILITÀ</strong><div id="stats" style="margin-top:10px;"></div></div>
-            <div class="card" style="margin-top:auto;">
-                <strong>⚖️ CONSIGLI SICUREZZA</strong>
-                <a href="https://www.carabinieri.it" target="_blank" class="card" style="margin-top:5px; background:#111821;">👮 Consigli Carabinieri</a>
-                <a href="https://www.poliziadistato.it" target="_blank" class="card" style="margin-top:5px; background:#111821;">👮 Consigli Polizia</a>
-            </div>
+
+<header>
+    <div class="header-title">🛡️ AREZZO SICURA</div>
+    <div style="color: #888; font-family: monospace;">GIOVEDÌ 5 MARZO 2026</div>
+</header>
+
+<div class="news-banner">
+    <div class="news-track">
+        <div class="news-item">🚨 LA NAZIONE: Furto a Foiano, arrestato uomo di 34 anni</div>
+        <div class="news-item">🚨 AREZZO NOTIZIE: Nuovi sistemi OCR sui varchi A1</div>
+        <div class="news-item">🚨 TELETURIA: Recrudescenza furti nel Casentino</div>
+        <div class="news-item">🚨 LA NAZIONE: Furto a Foiano, arrestato uomo di 34 anni</div>
+        <div class="news-item">🚨 AREZZO NOTIZIE: Nuovi sistemi OCR sui varchi A1</div>
+    </div>
+</div>
+
+<div class="dashboard">
+    <div class="col">
+        <a href="#" class="social-box">
+            <div class="social-tag">WHATSAPP | AREZZO OLMO</div>
+            <div style="font-size: 0.9em;">Segnalata auto sospetta vicino scuole. Ford bianca vecchio modello.</div>
+            <div style="font-size: 0.7em; color: #666; margin-top: 10px; text-align: right;">1 min fa</div>
+        </a>
+        <a href="#" class="social-box">
+            <div class="social-tag">TELEGRAM | @ControlloVicinato_Ar</div>
+            <div style="font-size: 0.9em;">Furgone bianco via Romana. Si prega di prestare attenzione.</div>
+            <div style="font-size: 0.7em; color: #666; margin-top: 10px; text-align: right;">5 min fa</div>
+        </a>
+        <a href="#" class="social-box">
+            <div class="social-tag">X | @ArezzoCronaca</div>
+            <div style="font-size: 0.9em;">Inseguimento SR71. Pattuglie sul posto. Evitare la zona.</div>
+            <div style="font-size: 0.7em; color: #666; margin-top: 10px; text-align: right;">12 min fa</div>
+        </a>
+    </div>
+
+    <div id="map">
+        <a href="tel:112" class="btn-112">🚨 CHIAMATA DI EMERGENZA 112</a>
+    </div>
+
+    <div class="col">
+        <div class="stats-panel">
+            <div style="color:var(--blue); font-weight:bold; font-size:0.8em; margin-bottom:15px;">📊 ANALISI PERMEABILITÀ</div>
+            <div style="font-size: 0.8em;">MONTEVARCHI (A1) <div class="bar-bg"><div class="bar-fill" style="width: 98%;"></div></div></div>
+            <div style="font-size: 0.8em;">CORTONA (SR71) <div class="bar-bg"><div class="bar-fill" style="width: 95%;"></div></div></div>
+            <div style="font-size: 0.8em;">CIVITELLA <div class="bar-bg"><div class="bar-fill" style="width: 92%;"></div></div></div>
+        </div>
+
+        <div class="info-panel">
+            <div style="color:var(--blue); font-weight:bold; font-size:0.8em; margin-bottom:10px;">⚖️ CONSIGLI SICUREZZA</div>
+            <a href="https://www.carabinieri.it" target="_blank" class="link-inst">👮 Consigli Carabinieri</a>
+            <a href="https://www.poliziadistato.it" target="_blank" class="link-inst">👮 Consigli Polizia di Stato</a>
         </div>
     </div>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-polyline-decorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
-    <script>
-        const map = L.map('map', {zoomControl: false}).setView([43.46, 11.88], 11);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+</div>
 
-        function drawArrows() {
-            const lines = [
-                {c: [[43.46, 11.88], [43.52, 11.77]], col: '#ff3b30'},
-                {c: [[43.46, 11.88], [43.35, 11.98]], col: '#f1c40f'}
-            ];
-            lines.forEach(r => {
-                const l = L.polyline(r.c, {color: r.col, weight: 4, dashArray: '10,10'}).addTo(map);
-                L.polylineDecorator(l, {patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {color: r.col, fillOpacity: 1}})}]}).addTo(map);
-            });
-        }
-        drawArrows();
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-polyline-decorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+<script>
+    const map = L.map('map', {zoomControl: false}).setView([43.46, 11.88], 11);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        async function update() {
-            const r = await fetch('/api/updates');
-            const d = await r.json();
-            document.getElementById('news').innerHTML = (d.news.map(n => `<span style="padding:0 40px">🚨 ${n.fonte}: ${n.titolo}</span>`).join('')).repeat(3);
-            document.getElementById('social-col').innerHTML = d.social.map(s => `
-                <a href="${s.link}" target="_blank" class="card">
-                    <div style="color:var(--blue); font-size:12px; font-weight:bold;">${s.tipo} | ${s.comune}</div>
-                    <div style="margin:5px 0;">${s.testo}</div>
-                    <div style="font-size:10px; color:gray; text-align:right;">${s.data}</div>
-                </a>`).join('');
-            document.getElementById('stats').innerHTML = d.stats.map(s => `
-                <div style="margin-bottom:10px; font-size:12px;">${s.l} (${s.v})
-                <div class="stat-bar"><div class="stat-fill" style="width:${s.v*10}%"></div></div></div>`).join('');
-        }
-        update(); setInterval(update, 60000);
-    </script>
+    // DISEGNO FRECCE TATTICHE IMMEDIATO
+    const routes = [
+        {c: [[43.46, 11.88], [43.52, 11.77]], col: '#ff3b30'}, // Verso A1
+        {c: [[43.46, 11.88], [43.35, 11.98]], col: '#f1c40f'}  // Verso Sud
+    ];
+    routes.forEach(r => {
+        const line = L.polyline(r.c, {color: r.col, weight: 4, dashArray: '10,10'}).addTo(map);
+        L.polylineDecorator(line, {
+            patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {color: r.col, fillOpacity: 1}})}]
+        }).addTo(map);
+    });
+</script>
 </body>
 </html>
