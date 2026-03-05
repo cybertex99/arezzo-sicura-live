@@ -18,33 +18,42 @@ RSS_FEEDS = [
 
 @app.route('/')
 def index():
-    return render_template('index.html', data_oggi=datetime.datetime.now().strftime("%d/%m/%Y"))
+    return render_template('index.html', data_oggi=datetime.datetime.now().strftime("%d/%m/%Y %H:%M"))
 
 @app.route('/api/updates')
 def get_updates():
     news_list = []
     headers = {'User-Agent': 'Mozilla/5.0'}
+    keywords = ["furto", "rapina", "ladri", "rubato", "spaccata", "sicurezza"]
 
     for url in RSS_FEEDS:
         try:
             req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=10) as response:
-                content = response.read()
-                feed = feedparser.parse(content)
-                for entry in feed.entries[:5]:
-                    fn = feed.feed.title.split('-')[0].strip() if 'title' in feed.feed else "News"
-                    news_list.append({"fonte": fn, "titolo": entry.title})
+                feed = feedparser.parse(response.read())
+                for entry in feed.entries:
+                    # Filtro per parole chiave legate ai furti
+                    if any(key in entry.title.lower() or key in entry.summary.lower() for key in keywords):
+                        fn = feed.feed.title.split('-')[0].strip() if 'title' in feed.feed else "News"
+                        news_list.append({"fonte": fn, "titolo": entry.title.upper()})
         except: continue
 
-    # SOCIAL DATA CON COORDINATE PER MAPPA
+    # SOCIAL DATA con Date (anche di ieri)
+    ieri = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%d/%m")
+    oggi = datetime.datetime.now().strftime("%d/%m")
+
     social_data = [
-        {"tipo": "ALERT", "comune": "Arezzo Centro", "testo": "Vie di fuga monitorate: SR71 fluida.", "lat": 43.463, "lon": 11.878, "colore": "#ffffff"},
-        {"tipo": "TRAFFICO", "comune": "Pescaiola", "testo": "Rallentamenti via Dante. Svincolo consigliato: via Galvani.", "lat": 43.455, "lon": 11.865, "colore": "#ffcc00"}
+        {"tipo": "X", "comune": "Arezzo", "ora": f"{oggi} 14:20", "testo": "Segnalata auto sospetta vicino a villette zona Giotto. Possibile sopralluogo ladri.", "lat": 43.461, "lon": 11.882, "colore": "#ffffff"},
+        {"tipo": "FB", "comune": "Montevarchi", "ora": f"{ieri} 22:15", "testo": "Furto in appartamento via Roma. Rubati gioielli e contanti. Forze ordine sul posto.", "lat": 43.523, "lon": 11.567, "colore": "#1877F2"},
+        {"tipo": "TG", "comune": "Cortona", "ora": f"{ieri} 19:30", "testo": "Tentata rapina presso stazione di servizio. Malviventi fuggiti verso Perugia.", "lat": 43.275, "lon": 11.985, "colore": "#0088cc"}
     ]
 
+    # VIE DI FUGA (Statistiche)
     stats_data = [
-        {"label": "Indice Affollamento Arezzo", "valore": 4.5, "color": "#00ff00"},
-        {"label": "Rischio Logistico Valdarno", "valore": 8.2, "color": "#ff3b3b"}
+        {"label": "SR71 (DIREZIONE SUD)", "valore": 8.5, "status": "OTTIMA"},
+        {"label": "E45 (SANSEPOLCRO)", "valore": 4.2, "status": "RALLENTATA"},
+        {"label": "A1 (AREZZO-V_DARNO)", "valore": 9.1, "status": "LIBERA"},
+        {"label": "VALDICHIANA (INTERNE)", "valore": 6.5, "status": "DISCRETA"}
     ]
 
     return jsonify({"ticker_news": news_list, "social_feed": social_data, "stats": stats_data})
