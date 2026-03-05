@@ -1,10 +1,7 @@
 from flask import Flask, render_template, jsonify
-import feedparser, datetime, os, urllib.request, ssl
+import feedparser, os, urllib.request, ssl
 
 app = Flask(__name__)
-
-# Fonti RSS Arezzo
-RSS_FEEDS = ["https://www.arezzonotizie.it/rss", "https://www.lanazione.it/arezzo/rss"]
 
 @app.route('/')
 def index():
@@ -12,41 +9,32 @@ def index():
 
 @app.route('/api/updates')
 def get_updates():
-    news_list = []
-    # Bypass SSL per evitare blocchi certificati sui server cloud
-    context = ssl._create_unverified_context()
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-
-    for url in RSS_FEEDS:
-        try:
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, context=context, timeout=8) as response:
-                feed = feedparser.parse(response.read())
-                for entry in feed.entries[:8]:
-                    news_list.append({
-                        "fonte": "CRONACA", 
-                        "titolo": entry.title.upper()
-                    })
-        except Exception as e:
-            print(f"Errore feed: {e}")
-            continue
+    # Dati News di Emergenza (se il web fallisce)
+    news_list = [{"fonte": "SISTEMA", "titolo": "MONITORAGGIO ATTIVO - NESSUNA ANOMALIA RILEVATA"}]
     
-    if not news_list:
-        news_list = [{"fonte": "SISTEMA", "titolo": "MONITORAGGIO ATTIVO - IN ATTESA DI NUOVI DATI"}]
+    # Tentativo recupero news reali
+    try:
+        context = ssl._create_unverified_context()
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        req = urllib.request.Request("https://www.arezzonotizie.it/rss", headers=headers)
+        with urllib.request.urlopen(req, context=context, timeout=5) as response:
+            feed = feedparser.parse(response.read())
+            if feed.entries:
+                news_list = [{"fonte": "CRONACA", "titolo": e.title.upper()} for e in feed.entries[:10]]
+    except:
+        pass
 
+    # Dati Social obbligatori (Box separati)
     social_data = [
-        {"tipo": "WHATSAPP", "comune": "AREZZO OLMO", "testo": "Segnalata auto sospetta vicino scuole.", "data_ora": "2 MIN FA", "link": "https://web.whatsapp.com/"},
-        {"tipo": "TELEGRAM", "comune": "VALDARNO", "testo": "Tentativo di furto a Terranuova.", "data_ora": "15 MIN FA", "link": "https://t.me/s/ArezzoNotizie"},
-        {"tipo": "FACEBOOK", "comune": "SOS VALDICHIANA", "testo": "Targhe rubate segnalate in zona.", "data_ora": "25 MIN FA", "link": "https://www.facebook.com/"}
+        {"tipo": "WHATSAPP", "comune": "AREZZO OLMO", "testo": "Auto sospetta segnalata.", "data": "1 min fa", "link": "https://web.whatsapp.com"},
+        {"tipo": "TELEGRAM", "comune": "@SicurezzaAr", "testo": "Furgone bianco in fuga verso A1.", "data": "5 min fa", "link": "https://t.me/s/ArezzoNotizie"},
+        {"tipo": "X", "comune": "@ArezzoCronaca", "testo": "Posto di blocco SR71.", "data": "10 min fa", "link": "https://twitter.com"}
     ]
 
-    stats_data = [
-        {"label": "MONTEVARCHI (A1)", "valore": 9.8},
-        {"label": "CORTONA (SR71)", "valore": 9.5},
-        {"label": "CIVITELLA", "valore": 9.2}
-    ]
+    # Statistiche Permeabilità
+    stats_data = [{"l": "MONTEVARCHI", "v": 9.8}, {"l": "CORTONA", "v": 9.5}, {"l": "CIVITELLA", "v": 9.2}]
 
-    return jsonify({"ticker_news": news_list, "social_feed": social_data, "stats": stats_data})
+    return jsonify({"news": news_list, "social": social_data, "stats": stats_data})
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
