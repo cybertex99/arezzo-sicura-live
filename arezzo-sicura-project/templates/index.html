@@ -35,36 +35,6 @@
             border-bottom: 2px solid #2c3e50;
         }
 
-        /* NEWS CAROUSEL (Top Banner) */
-        .news-banner {
-            background: #4a0e0e;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-            border-bottom: 2px solid var(--accent-red);
-        }
-
-        .news-track {
-            display: flex;
-            white-space: nowrap;
-            animation: scroll 120s linear infinite;
-        }
-
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        .news-item {
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            border-right: 1px solid #601a1a;
-        }
-
-        .news-item img { height: 30px; margin-right: 10px; border-radius: 3px; }
-
         /* LAYOUT */
         .dashboard-container {
             display: grid;
@@ -93,19 +63,34 @@
             align-items: center;
         }
 
-        /* SOCIAL FEED (Left) */
-        .social-item {
-            background: #1e2736;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-        }
-
         /* MAPPA (Center) */
         #map-container { position: relative; border-radius: 8px; overflow: hidden; }
         #map { height: 100%; width: 100%; background: #0b111a; }
         
+        /* Controlli di zoom */
+        .leaflet-control-zoom {
+            border: none;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+            background-color: rgba(20, 27, 38, 0.8) !important;
+            color: white !important;
+            border-bottom: 1px solid #2c3e50 !important;
+        }
+
+        /* Legenda */
+        .map-legend {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(20, 27, 38, 0.8);
+            padding: 10px; border-radius: 4px;
+            font-size: 0.8em; z-index: 1000;
+        }
+        .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+        .legend-icon { width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; }
+        .icon-red { background-color: #ff3b30; }
+        .icon-yellow { background-color: #f1c40f; }
+
+        /* SOS BUTTON */
         .map-overlay-btn {
             position: absolute; bottom: 20px; left: 50%;
             transform: translateX(-50%);
@@ -122,17 +107,6 @@
         .bar-label { font-size: 0.75em; display: flex; justify-content: space-between; margin-bottom: 4px; }
         .bar-bg { background: #2c3e50; height: 10px; border-radius: 5px; overflow: hidden; }
         .bar-fill { height: 100%; background: linear-gradient(90deg, #f1c40f, #e67e22); }
-
-        /* FOOTER LINKS */
-        .footer-links {
-            margin-top: auto;
-            border-top: 1px solid #2c3e50;
-            padding-top: 15px;
-        }
-        .link-item {
-            display: block; color: #ecf0f1; text-decoration: none;
-            padding: 8px 0; font-size: 0.85em;
-        }
     </style>
 </head>
 <body>
@@ -142,11 +116,6 @@
     <div id="clock">GIOVEDÌ 5 MARZO 2026</div>
 </header>
 
-<div class="news-banner">
-    <div class="news-track" id="news-track">
-        </div>
-</div>
-
 <div class="dashboard-container">
     <div class="panel">
         <div class="panel-header">📱 SOCIAL STREAM (LIVE FEED)</div>
@@ -155,6 +124,12 @@
 
     <div id="map-container" class="panel" style="padding:0;">
         <div id="map"></div>
+        
+        <div class="map-legend">
+            <div class="legend-item"><div class="legend-icon icon-red"></div> FURTO CONFERMATO</div>
+            <div class="legend-item"><div class="legend-icon icon-yellow"></div> RUMORE SOSPETTO</div>
+        </div>
+
         <a href="tel:112" class="map-overlay-btn">🚨 CHIAMATA DI EMERGENZA 112</a>
     </div>
 
@@ -173,23 +148,14 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const map = L.map('map', {zoomControl: false}).setView([43.463, 11.878], 10);
+    const map = L.map('map', {zoomControl: true, zoomControlOptions: {position: 'bottomright'}}).setView([43.463, 11.878], 10);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
     async function refreshData() {
         const res = await fetch('/api/updates');
         const data = await res.json();
 
-        // 1. News Banner
-        const track = document.getElementById('news-track');
-        const newsHtml = data.ticker_news.map(n => `
-            <div class="news-item">
-                <strong>${n.fonte}</strong>: ${n.titolo}
-            </div>
-        `).join('');
-        track.innerHTML = newsHtml + newsHtml; // Duplicato per loop infinito
-
-        // 2. Social Feed
+        // Social Feed
         document.getElementById('social-feed').innerHTML = data.social_feed.map(s => `
             <div class="social-item">
                 <div style="color:var(--accent-blue); font-size:0.8em; margin-bottom:3px;">${s.tipo}: ${s.comune}</div>
@@ -198,7 +164,7 @@
             </div>
         `).join('');
 
-        // 3. Stats Bars
+        // Stats Bars
         document.getElementById('stats-bars').innerHTML = data.stats.map(st => `
             <div class="bar-row">
                 <div class="bar-label"><span>${st.label}</span><span>${st.valore}</span></div>
