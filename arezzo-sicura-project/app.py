@@ -3,11 +3,15 @@ import feedparser, ssl, os, urllib.request
 
 app = Flask(__name__)
 
-# Fonti Reali: Arezzo + Guerra
-RSS_SOURCES = {
-    "AREZZO": "https://www.arezzonotizie.it/rss",
-    "GUERRA": "https://www.ansa.it/sito/notizie/mondo/rss.xml" # Feed mondo per aggiornamenti guerra
-}
+# Fonti Cronaca Arezzo
+RSS_SOURCES = [
+    "https://www.arezzonotizie.it/rss",
+    "https://www.lanazione.it/arezzo/rss",
+    "https://www.corrierediarezzo.it/rss"
+]
+
+# Parole chiave per il filtro sicurezza
+KEYWORDS = ["FURTO", "RAPINA", "RUBATA", "SOSPETTA", "ARRESTATO", "SCIPPO", "COLPO", "LADRI", "TARGHE"]
 
 @app.route('/')
 def index():
@@ -19,34 +23,38 @@ def get_updates():
     context = ssl._create_unverified_context()
     headers = {'User-Agent': 'Mozilla/5.0'}
 
-    # 1. Recupero News (Arezzo + Guerra)
-    for tag, url in RSS_SOURCES.items():
+    for url in RSS_SOURCES:
         try:
             req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, context=context, timeout=5) as response:
                 feed = feedparser.parse(response.read())
-                for entry in feed.entries[:5]:
-                    prefix = "🌍 GUERRA" if tag == "GUERRA" else "📍 AREZZO"
-                    data["ticker"].append(f"{prefix}: {entry.title.upper()}")
+                for entry in feed.entries[:10]:
+                    titolo = entry.title.upper()
+                    # Filtra solo se contiene parole chiave di sicurezza
+                    if any(key in titolo for key in KEYWORDS):
+                        data["ticker"].append(f"⚠️ ALLERTA: {titolo}")
         except: continue
 
-    # 2. Struttura per Post Social (Telegram/X)
-    # Se hai già uno script che legge X, i dati verranno iniettati qui
+    # Sezione Social (Telegram/X) - Qui i post che già leggi
+    # Inserisco dati di esempio basati sulle tue richieste
     data["social"] = [
         {
-            "piattaforma": "X (TWITTER)",
-            "autore": "@Emergenza24",
-            "testo": "Aggiornamento fronte: intensificati i controlli nelle zone di confine. Monitoraggio radar attivo.",
-            "time": "ORA"
+            "canale": "TELEGRAM | SEGNALAZIONI",
+            "testo": "Avvistata BMW scura targa straniera zona Olmo. Gira con fare sospetto tra le villette.",
+            "ora": "5 min fa",
+            "tipo": "SOSPETTO"
         },
         {
-            "piattaforma": "TELEGRAM",
-            "autore": "CANALE GUERRA LIVE",
-            "testo": "Esplosioni segnalate nel settore Nord. Fonti locali confermano attivazione contraerea.",
-            "time": "2 min fa"
+            "canale": "X | CRONACA AREZZO",
+            "testo": "Tentato furto in abitazione a Ceciliano. I malviventi sono fuggiti nei campi verso la ferrovia.",
+            "ora": "14 min fa",
+            "tipo": "FURTO"
         }
     ]
     
+    if not data["ticker"]:
+        data["ticker"] = ["✅ NESSUNA NUOVA SEGNALAZIONE DI RILIEVO NELLE ULTIME ORE"]
+
     return jsonify(data)
 
 if __name__ == "__main__":
