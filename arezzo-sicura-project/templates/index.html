@@ -12,26 +12,26 @@
         header { background: #111821; padding: 15px 25px; display: flex; justify-content: space-between; border-bottom: 1px solid #2c3e50; align-items: center; }
         .header-title { font-weight: bold; font-size: 1.4em; }
 
-        /* NEWS BANNER (ROSSO SCURO) */
+        /* NEWS BANNER SCORREVOLE */
         .news-banner { background: #3a0808; height: 45px; display: flex; align-items: center; overflow: hidden; border-bottom: 2px solid var(--red); }
         .news-track { display: flex; white-space: nowrap; animation: scroll 50s linear infinite; }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .news-item { padding: 0 40px; font-weight: bold; font-size: 0.9em; color: #ffcccc; }
 
-        /* GRID LAYOUT */
+        /* GRID LAYOUT A 3 COLONNE */
         .dashboard { display: grid; grid-template-columns: 340px 1fr 340px; gap: 12px; padding: 12px; flex-grow: 1; height: calc(100vh - 120px); }
         .col { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 
-        /* BOX SOCIAL SEPARATI */
+        /* BOX SOCIAL (SINISTRA) */
         .social-box { background: #1c2533; padding: 15px; border-radius: 6px; border: 1px solid #232d3b; text-decoration: none; color: white; display: block; border-left: 4px solid var(--blue); }
         .social-box:hover { border-color: var(--blue); background: #253142; }
         .social-tag { color: var(--blue); font-weight: bold; font-size: 0.75em; margin-bottom: 8px; text-transform: uppercase; }
 
-        /* MAPPA */
+        /* MAPPA (CENTRO) */
         #map { background: #0b111a; border-radius: 6px; border: 1px solid #232d3b; height: 100%; position: relative; }
-        .btn-112 { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: linear-gradient(180deg, #ff4d4d 0%, #990000 100%); padding: 18px 45px; border-radius: 5px; font-weight: bold; color: white; text-decoration: none; z-index: 1000; border: 1px solid red; box-shadow: 0 5px 15px rgba(255,0,0,0.4); text-align: center; }
+        .btn-112 { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: linear-gradient(180deg, #ff4d4d 0%, #990000 100%); padding: 18px 45px; border-radius: 5px; font-weight: bold; color: white; text-decoration: none; z-index: 1000; border: 1px solid red; box-shadow: 0 5px 15px rgba(255,0,0,0.4); text-align: center; white-space: nowrap; }
 
-        /* STATS E INFO */
+        /* STATS E INFO (DESTRA) */
         .stats-panel { background: var(--panel); padding: 18px; border-radius: 6px; border: 1px solid #232d3b; }
         .info-panel { background: var(--panel); padding: 18px; border-radius: 6px; border: 1px solid #232d3b; margin-top: auto; }
         .link-inst { display: block; background: #111821; padding: 12px; margin-top: 10px; border-radius: 4px; text-decoration: none; color: #ecf0f1; font-size: 0.85em; border: 1px solid #2c3e50; }
@@ -44,7 +44,7 @@
 
 <header>
     <div class="header-title">🛡️ AREZZO SICURA</div>
-    <div style="color: #888; font-family: monospace;">GIOVEDÌ 5 MARZO 2026</div>
+    <div style="color: #888; font-family: monospace;" id="current-date">GIOVEDÌ 5 MARZO 2026</div>
 </header>
 
 <div class="news-banner">
@@ -59,7 +59,7 @@
 
 <div class="dashboard">
     <div class="col">
-        <div style="font-size: 0.8em; color: var(--blue); font-weight: bold; margin-bottom: 5px;">📱 SOCIAL STREAM (LIVE FEED)</div>
+        <div style="font-size: 0.8em; color: var(--blue); font-weight: bold; margin-bottom: 5px;">📱 SOCIAL STREAM (LIVE)</div>
         
         <a href="https://web.whatsapp.com" target="_blank" class="social-box">
             <div class="social-tag">WHATSAPP | AREZZO OLMO</div>
@@ -103,22 +103,26 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-polyline-decorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
 <script>
-    // Inizializzazione mappa
+    // Inizializzazione Mappa Dark
     const map = L.map('map', {zoomControl: false}).setView([43.46, 11.88], 11);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    // Disegno immediato delle frecce tattiche
+    // Frecce Tattiche
     const routes = [
-        {c: [[43.46, 11.88], [43.53, 11.75]], col: '#ff3b30', label: 'A1 BATTIFOLLE'},
-        {c: [[43.46, 11.88], [43.35, 12.00]], col: '#f1c40f', label: 'SENTIERI SUD'}
+        {coords: [[43.46, 11.88], [43.53, 11.75]], color: '#ff3b30'}, // A1
+        {coords: [[43.46, 11.88], [43.35, 12.00]], color: '#f1c40f'}  // Sentieri
     ];
 
     routes.forEach(r => {
-        const line = L.polyline(r.coords, {color: r.col, weight: 4, dashArray: '10,10', opacity: 0.7}).addTo(map);
+        const line = L.polyline(r.coords, {color: r.color, weight: 4, dashArray: '10,10', opacity: 0.7}).addTo(map);
         L.polylineDecorator(line, {
-            patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 18, pathOptions: {color: r.col, fillOpacity: 1}})}]
+            patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 18, pathOptions: {color: r.color, fillOpacity: 1}})}]
         }).addTo(map);
     });
+
+    // Data Dinamica
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('current-date').innerText = new Date().toLocaleDateString('it-IT', options).toUpperCase();
 </script>
 </body>
 </html>
