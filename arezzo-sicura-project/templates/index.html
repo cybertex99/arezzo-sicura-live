@@ -2,57 +2,63 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>AREZZO SICURA | GLOBAL & LOCAL AGGREGATOR</title>
+    <title>AREZZO SICURA | MONITORAGGIO REATI</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --bg: #0a0d14; --panel: #141b26; --red: #ff3b30; --blue: #007aff; --war-orange: #ff9500; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root { --bg: #05070a; --panel: #0d121a; --red: #ff3b30; --blue: #007aff; --yellow: #ffcc00; }
+        body { background: var(--bg); color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        header { background: #111821; padding: 12px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #2c3e50; align-items: center; }
-        .news-banner { background: #2a0505; height: 40px; display: flex; align-items: center; overflow: hidden; border-bottom: 2px solid var(--red); }
-        .news-track { display: flex; white-space: nowrap; animation: scroll 80s linear infinite; }
+        header { background: #0a0e14; padding: 15px 25px; display: flex; justify-content: space-between; border-bottom: 2px solid #1a222d; align-items: center; }
+        .news-banner { background: #1a0000; height: 45px; display: flex; align-items: center; overflow: hidden; border-bottom: 2px solid var(--red); box-shadow: 0 0 15px rgba(255,0,0,0.2); }
+        .news-track { display: flex; white-space: nowrap; animation: scroll 45s linear infinite; }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .news-item { padding: 0 50px; font-weight: bold; font-size: 0.85em; color: #ffcccc; letter-spacing: 1px; }
+        .news-item { padding: 0 60px; font-weight: bold; font-size: 0.9em; color: #ff9999; letter-spacing: 0.5px; }
 
-        .dashboard { display: grid; grid-template-columns: 380px 1fr 320px; gap: 10px; padding: 10px; flex-grow: 1; height: calc(100vh - 110px); }
+        .dashboard { display: grid; grid-template-columns: 360px 1fr 320px; gap: 10px; padding: 10px; flex-grow: 1; height: calc(100vh - 120px); }
         .col { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
 
-        .card { background: #1c2533; padding: 15px; border-radius: 4px; border: 1px solid #232d3b; position: relative; border-left: 4px solid var(--blue); }
-        .card.war { border-left-color: var(--war-orange); }
+        .card { background: var(--panel); padding: 15px; border-radius: 4px; border: 1px solid #1e2631; position: relative; border-left: 5px solid var(--blue); }
+        .card.sospetto { border-left-color: var(--yellow); }
+        .card.furto { border-left-color: var(--red); }
         
-        #map { background: #0b111a; border-radius: 4px; border: 1px solid #232d3b; height: 100%; }
-        .status-badge { position: absolute; top: 10px; right: 10px; font-size: 10px; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 3px; }
+        #map { background: #000; border-radius: 4px; border: 1px solid #1e2631; height: 100%; filter: saturate(0.8) contrast(1.1); }
+        .btn-112 { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: #900; padding: 15px 40px; border-radius: 4px; font-weight: bold; color: white; text-decoration:none; z-index: 1000; border: 1px solid red; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight:bold; font-size:1.2em; display:flex; align-items:center; gap:10px;">
-        <span style="color:var(--red)">● LIVE</span> AGGREGATORE SICUREZZA
-    </div>
-    <div id="clock" style="font-family:monospace; color:var(--blue);"></div>
+    <div style="font-weight:bold; font-size:1.3em; letter-spacing:1px; color:#fff;">🛡️ AREZZO SICURA <span style="font-size:0.6em; color:var(--red); vertical-align:middle; margin-left:10px;">● MONITORAGGIO REATI</span></div>
+    <div id="clock" style="font-family:monospace; color:var(--blue); font-size:1.1em;"></div>
 </header>
 
 <div class="news-banner">
-    <div class="news-track" id="ticker">Caricamento flussi notizie...</div>
+    <div class="news-track" id="ticker">SINCRONIZZAZIONE FEED SICUREZZA IN CORSO...</div>
 </div>
 
 <div class="dashboard">
     <div class="col" id="social-col">
-        <div style="font-size: 0.75em; color: #666; font-weight: bold; text-transform: uppercase;">Streaming Post (X & Telegram)</div>
+        <div style="font-size: 0.7em; color: #555; font-weight: bold; text-transform: uppercase; padding-left: 5px;">Flusso Segnalazioni Social</div>
         </div>
 
-    <div id="map"></div>
+    <div id="map-container" style="position:relative;">
+        <div id="map"></div>
+        <a href="tel:112" class="btn-112">🚨 EMERGENZA 112</a>
+    </div>
 
     <div class="col">
-        <div class="card" style="border-left-color: var(--red);">
-            <div style="font-weight:bold; font-size:0.8em; margin-bottom:10px;">☢️ LIVE WAR MONITOR</div>
-            <div style="font-size:0.85em; line-height:1.4;">Livello allerta globale: <span style="color:var(--war-orange)">ELEVATO</span><br>Aggiornamenti: 12 nuovi post/min</div>
+        <div class="card" style="border-left-color: #555;">
+            <div style="font-weight:bold; font-size:0.8em; margin-bottom:10px; color:var(--blue);">🔍 FOCUS TERRITORIO</div>
+            <div style="font-size:0.8em; line-height:1.6;">
+                Varchi A1: <span style="color:lime">ATTIVI</span><br>
+                Telecamere OCR: <span style="color:lime">ONLINE</span><br>
+                Zone Calde: Olmo, Pescaiola, Ceciliano.
+            </div>
         </div>
         
-        <div class="card" style="margin-top:auto;">
-            <div style="font-weight:bold; font-size:0.8em; margin-bottom:10px; color:var(--blue);">📍 SICUREZZA AREZZO</div>
-            <div style="font-size:0.8em;">Varchi autostradali: Monitorati<br>Pattuglie attive: 14<br>Status: Regolare</div>
+        <div class="card" style="margin-top:auto; background: #0a0e14;">
+            <div style="font-weight:bold; font-size:0.75em; margin-bottom:10px; color:#888;">INFO UTILI</div>
+            <div style="font-size:0.75em;">In caso di avvistamento veicolo sospetto, non intervenire. Rilevare targa e chiamare le autorità.</div>
         </div>
     </div>
 </div>
@@ -67,15 +73,13 @@
             const r = await fetch('/api/updates');
             const d = await r.json();
             
-            // News Ticker
             document.getElementById('ticker').innerHTML = d.ticker.map(t => `<span class="news-item">${t}</span>`).join('').repeat(2);
             
-            // Social Column
             document.getElementById('social-col').innerHTML = d.social.map(s => `
-                <div class="card ${s.piattaforma.includes('GUERRA') ? 'war' : ''}">
-                    <span class="status-badge">${s.time}</span>
-                    <div style="color:var(--blue); font-weight:bold; font-size:10px; margin-bottom:5px;">${s.piattaforma} | ${s.autore}</div>
-                    <div style="font-size:13px; line-height:1.4;">${s.testo}</div>
+                <div class="card ${s.tipo.toLowerCase()}">
+                    <div style="color:var(--blue); font-weight:bold; font-size:10px; margin-bottom:5px;">${s.canale}</div>
+                    <div style="font-size:13px; line-height:1.4; color:#fff;">${s.testo}</div>
+                    <div style="font-size:10px; color:#555; margin-top:10px; text-align:right;">${s.ora}</div>
                 </div>
             `).join('');
             
@@ -88,7 +92,7 @@
     }, 1000);
 
     updateData();
-    setInterval(updateData, 60000);
+    setInterval(updateData, 120000); // Aggiorna ogni 2 minuti
 </script>
 </body>
 </html>
